@@ -1,5 +1,5 @@
 import React from 'react';
-import {API_KEY_3, API_URL} from './../../Api/api'
+import {API_KEY_3, API_URL, fetchAPI} from './../../Api/api'
 import "bootstrap/dist/css/bootstrap.min.css";
 
 export default class LoginForm extends React.Component {
@@ -36,23 +36,6 @@ export default class LoginForm extends React.Component {
     }
 
     onSubmit =() => {
-            const fetchAPI = (url, options = {}) => {
-                return new Promise((resolve, reject) => {
-                    fetch(url, options)
-                    .then(response => {
-                        if (response.status < 400){
-                            return response.json()
-                        } else {
-                            throw response
-                        }
-                    })
-                    .then(data => resolve(data))
-                    .catch(response => {
-                        response.json()
-                            .then(error => reject(error))
-                    })
-                })
-            }
             this.setState({
                 submitting: true
             })
@@ -84,9 +67,15 @@ export default class LoginForm extends React.Component {
                     })
                 })
                 .then(data => {
-                    console.log('session', data)
+                    this.props.updateSessionId(data.session_id)
+                    return fetchAPI(`${API_URL}/account?api_key=${API_KEY_3}&session_id=${data.session_id}`)
+                })
+                .then(user => {
+                    console.log('session', user)
                     this.setState({
                         submitting: false
+                    }, () => {
+                        this.props.updateUser(user)
                     })
                 })
                 .catch(error => {
